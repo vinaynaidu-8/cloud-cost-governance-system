@@ -2,65 +2,80 @@ import boto3
 from datetime import datetime, timedelta
 import json
 
-def normalize_service(service):
-    service = service.lower()
+REGION = "ap-south-1"
 
-    if "ec2" in service or "elastic compute" in service:
+
+def normalize(service):
+    s = service.lower()
+
+    if "elastic compute cloud" in s:
         return "ec2"
-    elif "s3" in service:
+    elif "simple storage service" in s:
         return "s3"
-    elif "rds" in service:
+    elif "relational database" in s:
         return "rds"
-    elif "lambda" in service:
-        return "lambda"
+    elif "ec2 - other" in s:
+        return "ebs"
+    elif "elastic file system" in s:
+        return "efs"
     else:
-        return service
+        return None
 
-def main():
-    client = boto3.client('ce', region_name='us-east-1')
 
-    end = datetime.utcnow().date()
-    start = end - timedelta(days=7)
+def get_cost(days):
+    ce = boto3.client("ce")
 
-    response = client.get_cost_and_usage(
-        TimePeriod={'Start': str(start), 'End': str(end)},
-        Granularity='DAILY',
-        Metrics=['UnblendedCost'],
-        GroupBy=[{'Type': 'DIMENSION', 'Key': 'SERVICE'}]
+    end = datetime.utcnow()
+    start = end - timedelta(days=days)
+
+    response = ce.get_cost_and_usage(
+        TimePeriod={
+            "Start": start.strftime("%Y-%m-%d"),
+            "End": end.strftime("%Y-%m-%d")
+        },
+        Granularity="DAILY",
+        Metrics=["UnblendedCost"],
+        GroupBy=[{"Type": "DIMENSION", "Key": "SERVICE"}]
     )
 
-    service_costs = {}
+    costs = {}
 
-    for result in response['ResultsByTime']:
-        for group in result['Groups']:
-            service = normalize_service(group['Keys'][0])
-            amount = float(group['Metrics']['UnblendedCost']['Amount'])
+    for day in response["ResultsByTime"]:
+        for g in day["Groups"]:
+            service = g["Keys"][0]
+            amount = float(g["Metrics"]["UnblendedCost"]["Amount"])
 
-            if service not in service_costs:
-                service_costs[service] = 0
+            key = normalize(service)
+            if not key:
+                continue
 
-            service_costs[service] += amount
+            costs[key] = costs.get(key, 0) + amount
 
-    resources = []
+    return costs
 
-    for service, total in service_costs.items():
-        weekly_cost = total
-        resources.append({
-            "service": service,
+
+def run():
+    cost7 = get_cost(7)
+    cost30 = get_cost(30)
+
+    services = ["ec2", "s3", "rds", "ebs", "efs"]
+
+    result = []
+
+    for s in services:
+        result.append({
+            "service": s,
             "cost": {
-                "last_7_days": round(weekly_cost, 4)
+                "last_7_days": round(cost7.get(s, 0), 4),
+                "last_30_days": round(cost30.get(s, 0), 4)
             }
         })
 
-    data = {
-        "timestamp": datetime.utcnow().isoformat(),
-        "resources": resources
-    }
-
     with open("data/enhanced_cost_metrics.json", "w") as f:
-        json.dump(data, f, indent=4)
+        json.dump({"resources": result}, f, indent=4)
 
-    print("✅ Real AWS cost data collected successfully!")
+    print("✅ Cost updated")
+
 
 if __name__ == "__main__":
-    main()
+    run()

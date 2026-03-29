@@ -1,173 +1,131 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request
 import json
-import os
-from datetime import datetime
 import boto3
-import logging
-import sys
-
-# Fix import path
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 app = Flask(__name__)
+REGION = "ap-south-1"
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
-DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
+# ---------- RESOURCE COUNTS ----------
 
-# -----------------------
-# Load JSON
-# -----------------------
-def load_json(file):
+def get_ec2():
+    ec2 = boto3.client("ec2", region_name=REGION)
+    res = ec2.describe_instances()
+    return sum(
+        1 for r in res["Reservations"]
+        for i in r["Instances"]
+        if i["State"]["Name"] == "running"
+    )
+
+
+def get_s3():
+    s3 = boto3.client("s3")
+    return len(s3.list_buckets()["Buckets"])
+
+
+def get_rds():
+    rds = boto3.client("rds", region_name=REGION)
+    return len(rds.describe_db_instances()["DBInstances"])
+
+
+def get_ebs():
+    ec2 = boto3.client("ec2", region_name=REGION)
+    return sum(1 for v in ec2.describe_volumes()["Volumes"] if v["State"] == "in-use")
+
+
+def get_efs():
     try:
-        path = os.path.join(DATA_DIR, file)
-        if os.path.exists(path):
-            with open(path) as f:
-                return json.load(f)
-        return {}
-    except Exception as e:
-        logger.error(f"Error loading {file}: {e}")
-        return {}
+        efs = boto3.client("efs", region_name=REGION)
+        return len(efs.describe_file_systems()["FileSystems"])
+    except Exception:
+        return 0
 
-# -----------------------
-# EC2 Running Count
-# -----------------------
-def get_running_ec2_count():
-    ec2 = boto3.client("ec2", region_name="ap-south-1")
-    response = ec2.describe_instances()
 
-    count = 0
-    for r in response["Reservations"]:
-        for i in r["Instances"]:
-            if i["State"]["Name"] == "running":
-                count += 1
-    return count
+# ---------- LOAD COST ----------
 
-# -----------------------
-# Dashboard (NO DATA INITIALLY)
-# -----------------------
+def get_cost(resource, days):
+    with open("../data/enhanced_cost_metrics.json") as f:
+        data = json.load(f)
+
+    for r in data["resources"]:
+        if r["service"] == resource:
+            return r["cost"]["last_7_days"] if days == "7" else r["cost"]["last_30_days"]
+
+    return 0
+
+
+# ---------- ROUTES ----------
+
 @app.route("/")
-def dashboard():
+def home():
     return render_template("index.html", result=None)
 
-# -----------------------
-# Minimal API (no fake cost)
-# -----------------------
-@app.route("/api/dashboard-data")
-def dashboard_data():
-    try:
-        return jsonify({
-            "total_cost": 0,
-            "running_instances": get_running_ec2_count(),
-            "data_source": "idle"
-        })
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
-# -----------------------
-# Analyze Resource
-# -----------------------
 @app.route("/analyze", methods=["POST"])
 def analyze():
-    try:
-        cost_data = load_json("enhanced_cost_metrics.json")
+    resource = request.form["resource"]
+    days = request.form["days"]
 
-        resource = request.form.get("resource", "").lower()
-        resources = cost_data.get("resources", [])
+    cost = get_cost(resource, days)
 
-        # Filter selected resource
-        filtered = [
-            r for r in resources
-            if resource in r.get("service", "").lower()
-        ]
+    # ---------- COUNT ----------
+    if resource == "ec2":
+        count = get_ec2()
+    elif resource == "s3":
+        count = get_s3()
+    elif resource == "rds":
+        count = get_rds()
+    elif resource == "ebs":
+        count = get_ebs()
+    elif resource == "efs":
+        count = get_efs()
+    else:
+        count = 0
 
-        # Calculate cost
-        total_cost = 0
-        for r in filtered:
-            weekly = r.get("cost", {}).get("last_7_days", 0)
-            total_cost += weekly * 4.33
+    # ---------- MONTHLY COST ----------
+    monthly_cost = cost * 4.33
 
-        # Running EC2 instances
-        running_count = 0
-        if resource == "ec2":
-            running_count = get_running_ec2_count()
+    # ---------- LOGIC ----------
+    if monthly_cost > 1:
+        priority = "HIGH"
+        action = f"🔴 Optimize {resource.upper()} immediately"
+        reason = "High monthly cost detected"
+        savings = monthly_cost * 0.4
 
-        # -----------------------
-        # 🔥 RECOMMENDATION LOGIC
-        # -----------------------
-        recommendations = []
-        high = medium = low = 0
-        total_savings = 0
+    elif monthly_cost > 0.1:
+        priority = "MEDIUM"
+        action = f"🟡 Optimize {resource.upper()} usage"
+        reason = "Moderate cost detected"
+        savings = monthly_cost * 0.25
 
-        for r in filtered:
-            cost = r.get("cost", {}).get("last_7_days", 0)
+    else:
+        priority = "LOW"
+        action = f"🟢 {resource.upper()} usage is efficient"
+        reason = "Low cost usage"
+        savings = 0
 
-            if cost > 0.05:
-                priority = "HIGH"
-                action = "🔴 Stop or terminate instance immediately (high unnecessary cost)"
-                reason = "High cost detected with no optimization"
-                savings = cost * 4.33 * 0.4
-                high += 1
-
-            elif cost > 0.01:
-                priority = "MEDIUM"
-                action = "🟡 Resize instance (reduce instance type to save cost)"
-                reason = "Moderate usage, can optimize"
-                savings = cost * 4.33 * 0.25
-                medium += 1
-
-            else:
-                priority = "LOW"
-                action = "🟢 Keep running (efficient usage)"
-                reason = "Low cost, already optimized"
-                savings = 0
-                low += 1
-
-            total_savings += savings
-
-            recommendations.append({
-                "service": resource.upper(),
-                "priority": priority,
-                "recommendation": action,
-                "reason": reason,
-                "analysis": {
-                    "estimated_monthly_savings": round(savings, 4)
-                }
-            })
-
-        result = {
-            "resource": resource.upper(),
-            "total_cost": round(total_cost, 4),
-            "resource_count": running_count,
-            "recommendations": recommendations,
-            "summary": {
-                "high_priority": high,
-                "medium_priority": medium,
-                "low_priority": low,
-                "total_savings": round(total_savings, 4)
+    result = {
+        "resource": resource.upper(),
+        "resource_count": count,
+        "total_cost": round(monthly_cost, 4),
+        "summary": {
+            "high_priority": 1 if priority == "HIGH" else 0,
+            "medium_priority": 1 if priority == "MEDIUM" else 0,
+            "low_priority": 1 if priority == "LOW" else 0,
+            "total_savings": round(savings, 4)
+        },
+        "recommendations": [{
+            "priority": priority,
+            "recommendation": action,
+            "reason": reason,
+            "analysis": {
+                "estimated_monthly_savings": round(savings, 4)
             }
-        }
+        }]
+    }
 
-        return render_template("index.html", result=result)
+    return render_template("index.html", result=result)
 
-    except Exception as e:
-        logger.error(f"Error: {e}")
-        return render_template("index.html", error=str(e))
 
-# -----------------------
-# Health
-# -----------------------
-@app.route("/health")
-def health():
-    return jsonify({
-        "status": "healthy",
-        "time": datetime.now().isoformat()
-    })
-
-# -----------------------
-# Run
-# -----------------------
 if __name__ == "__main__":
-    print("🚀 Starting Dashboard...")
     app.run(host="0.0.0.0", port=5000, debug=True)
