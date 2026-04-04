@@ -1,61 +1,105 @@
 from flask import Flask, render_template, request
-import json
 import boto3
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
+
 REGION = "ap-south-1"
 
-
-# ---------- RESOURCE COUNTS ----------
-
-def get_ec2():
-    ec2 = boto3.client("ec2", region_name=REGION)
-    res = ec2.describe_instances()
-    return sum(
-        1 for r in res["Reservations"]
-        for i in r["Instances"]
-        if i["State"]["Name"] == "running"
-    )
+ec2 = boto3.client("ec2", region_name=REGION)
+cw = boto3.client("cloudwatch", region_name=REGION)
+rds = boto3.client("rds", region_name=REGION)
+efs = boto3.client("efs", region_name=REGION)
+s3 = boto3.client("s3")
+ce = boto3.client("ce", region_name="us-east-1")
 
 
-def get_s3():
-    s3 = boto3.client("s3")
-    return len(s3.list_buckets()["Buckets"])
-
-
-def get_rds():
-    rds = boto3.client("rds", region_name=REGION)
-    return len(rds.describe_db_instances()["DBInstances"])
-
-
-def get_ebs():
-    ec2 = boto3.client("ec2", region_name=REGION)
-    return sum(1 for v in ec2.describe_volumes()["Volumes"] if v["State"] == "in-use")
-
-
-def get_efs():
+# ---------- COST ----------
+def get_cost(service, days):
     try:
-        efs = boto3.client("efs", region_name=REGION)
-        return len(efs.describe_file_systems()["FileSystems"])
-    except Exception:
-        return 0
+        end = datetime.utcnow().date()
+        start = end - timedelta(days=days)
+
+        service_map = {
+            "ec2": "Amazon Elastic Compute Cloud - Compute",
+            "s3": "Amazon Simple Storage Service",
+            "rds": "Amazon Relational Database Service",
+            "ebs": "Amazon Elastic Block Store",
+            "efs": "Amazon Elastic File System"
+        }
+
+        response = ce.get_cost_and_usage(
+            TimePeriod={"Start": str(start), "End": str(end)},
+            Granularity="MONTHLY",
+            Metrics=["UnblendedCost"],
+            Filter={
+                "Dimensions": {
+                    "Key": "SERVICE",
+                    "Values": [service_map.get(service)]
+                }
+            }
+        )
+
+        return float(response["ResultsByTime"][0]["Total"]["UnblendedCost"]["Amount"])
+    except:
+        return 0.0
 
 
-# ---------- LOAD COST ----------
+# ---------- EC2 ----------
+def analyze_ec2(instances, days):
+    recommendations = []
 
-def get_cost(resource, days):
-    with open("../data/enhanced_cost_metrics.json") as f:
-        data = json.load(f)
+    for inst in instances:
+        metrics = cw.get_metric_statistics(
+            Namespace="AWS/EC2",
+            MetricName="CPUUtilization",
+            Dimensions=[{"Name": "InstanceId", "Value": inst}],
+            StartTime=datetime.utcnow() - timedelta(days=days),
+            EndTime=datetime.utcnow(),
+            Period=3600,
+            Statistics=["Average"]
+        )
 
-    for r in data["resources"]:
-        if r["service"] == resource:
-            return r["cost"]["last_7_days"] if days == "7" else r["cost"]["last_30_days"]
+        datapoints = metrics.get("Datapoints", [])
+        avg_cpu = (
+            sum(d["Average"] for d in datapoints) / len(datapoints)
+            if datapoints else 0
+        )
 
-    return 0
+        if avg_cpu < 5:
+            recommendations.append({
+                "priority": "HIGH",
+                "resource_id": inst,
+                "analysis": {
+                    "status": "Idle",
+                    "action": "Stop Instance"
+                }
+            })
+
+        elif avg_cpu < 20:
+            recommendations.append({
+                "priority": "MEDIUM",
+                "resource_id": inst,
+                "analysis": {
+                    "status": "Underutilized",
+                    "action": "Resize Instance"
+                }
+            })
+
+        elif avg_cpu > 80:
+            recommendations.append({
+                "priority": "MEDIUM",
+                "resource_id": inst,
+                "analysis": {
+                    "status": "Overutilized",
+                    "action": "Scale Up"
+                }
+            })
+
+    return recommendations
 
 
-# ---------- ROUTES ----------
-
+# ---------- ROUTE ----------
 @app.route("/")
 def home():
     return render_template("index.html", result=None)
@@ -63,65 +107,108 @@ def home():
 
 @app.route("/analyze", methods=["POST"])
 def analyze():
-    resource = request.form["resource"]
-    days = request.form["days"]
+    resource = request.form.get("resource")
+    days = int(request.form.get("days"))
 
     cost = get_cost(resource, days)
 
-    # ---------- COUNT ----------
+    recommendations = []
+    count = 0
+
+    # ---------- EC2 ----------
     if resource == "ec2":
-        count = get_ec2()
+        instances = [
+            i["InstanceId"]
+            for r in ec2.describe_instances()["Reservations"]
+            for i in r["Instances"]
+            if i["State"]["Name"] == "running"
+        ]
+
+        count = len(instances)
+        if count > 0:
+            recommendations = analyze_ec2(instances, days)
+
+    # ---------- S3 ----------
     elif resource == "s3":
-        count = get_s3()
+        buckets = s3.list_buckets()["Buckets"]
+        count = len(buckets)
+
+        if count > 5:
+            recommendations.append({
+                "priority": "MEDIUM",
+                "resource_id": "S3 Buckets",
+                "analysis": {
+                    "status": "Underutilized",
+                    "action": "Enable Lifecycle"
+                }
+            })
+
+    # ---------- RDS ----------
     elif resource == "rds":
-        count = get_rds()
+        dbs = rds.describe_db_instances()["DBInstances"]
+        count = len(dbs)
+
+        for db in dbs:
+            recommendations.append({
+                "priority": "MEDIUM",
+                "resource_id": db["DBInstanceIdentifier"],
+                "analysis": {
+                    "status": "Underutilized",
+                    "action": "Review DB Usage"
+                }
+            })
+
+    # ---------- EBS ----------
     elif resource == "ebs":
-        count = get_ebs()
+        volumes = ec2.describe_volumes()["Volumes"]
+        count = len(volumes)
+
+        unused = [v for v in volumes if v["State"] == "available"]
+
+        for v in unused:
+            recommendations.append({
+                "priority": "HIGH",
+                "resource_id": v["VolumeId"],
+                "analysis": {
+                    "status": "Idle",
+                    "action": "Delete Volume"
+                }
+            })
+
+    # ---------- EFS ----------
     elif resource == "efs":
-        count = get_efs()
-    else:
-        count = 0
+        fs = efs.describe_file_systems()["FileSystems"]
+        count = len(fs)
 
-    # ---------- MONTHLY COST ----------
-    monthly_cost = cost * 4.33
+        if count > 0:
+            recommendations.append({
+                "priority": "MEDIUM",
+                "resource_id": "EFS",
+                "analysis": {
+                    "status": "Underutilized",
+                    "action": "Optimize Storage"
+                }
+            })
 
-    # ---------- LOGIC ----------
-    if monthly_cost > 1:
-        priority = "HIGH"
-        action = f"🔴 Optimize {resource.upper()} immediately"
-        reason = "High monthly cost detected"
-        savings = monthly_cost * 0.4
-
-    elif monthly_cost > 0.1:
-        priority = "MEDIUM"
-        action = f"🟡 Optimize {resource.upper()} usage"
-        reason = "Moderate cost detected"
-        savings = monthly_cost * 0.25
-
-    else:
-        priority = "LOW"
-        action = f"🟢 {resource.upper()} usage is efficient"
-        reason = "Low cost usage"
-        savings = 0
+    # ---------- NO ACTION ----------
+    if not recommendations:
+        recommendations = [{
+            "priority": "LOW",
+            "resource_id": resource.upper(),
+            "analysis": {
+                "status": "Optimized",
+                "action": "No Action Needed"
+            }
+        }]
 
     result = {
         "resource": resource.upper(),
         "resource_count": count,
-        "total_cost": round(monthly_cost, 4),
+        "total_cost": round(cost, 4),
         "summary": {
-            "high_priority": 1 if priority == "HIGH" else 0,
-            "medium_priority": 1 if priority == "MEDIUM" else 0,
-            "low_priority": 1 if priority == "LOW" else 0,
-            "total_savings": round(savings, 4)
+            "total_savings": round(cost * 0.3, 4)
         },
-        "recommendations": [{
-            "priority": priority,
-            "recommendation": action,
-            "reason": reason,
-            "analysis": {
-                "estimated_monthly_savings": round(savings, 4)
-            }
-        }]
+        "recommendations": recommendations
     }
 
     return render_template("index.html", result=result)
