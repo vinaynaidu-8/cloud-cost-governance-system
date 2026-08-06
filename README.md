@@ -2,6 +2,7 @@
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/713eec09-1764-47d9-833c-060499fd1a38" alt="Cloud Cost Governance System Banner" width="100%">
+</p>
 
 <p align="center">
   <strong>AWS • Flask • Python • Cloud Cost Optimization</strong>
@@ -56,6 +57,7 @@ Built using Python, Flask, and Boto3, the system presents cloud usage insights t
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/0bc3f0fa-03b0-45c8-9f4c-7f0bc917b93f" alt="Cloud Cost Governance System Banner" width="100%">
+</p>
 
   ### Architecture Components
 
@@ -126,6 +128,7 @@ The dashboard provides a consolidated view of AWS resource utilization, cloud co
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/dbc72762-7382-4de3-b10e-a9c77b4c01e8" alt="Cloud Cost Governance System Banner" width="100%">
+</p>
 
 ---
 
@@ -198,22 +201,6 @@ python app.py
 ```
 
 Once the server starts successfully, open the application in your browser using the local URL displayed in the terminal.
----
-
-## AWS Configuration
-
-Before running the project, configure AWS credentials.
-
-```bash
-aws configure
-```
-
-The application requires access to the following AWS services:
-
-* Amazon EC2
-* Amazon CloudWatch
-* AWS Cost Explorer
-
 ---
 
 ## Current Scope
