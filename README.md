@@ -44,25 +44,16 @@ The application is built using Python and Flask, with AWS integration through Bo
 
 # System Architecture
 
-> **Placeholder:** Add the overall system architecture diagram here.
-
-Suggested image:
-
-```text
-docs/images/system-architecture.png
-```
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/0bc3f0fa-03b0-45c8-9f4c-7f0bc917b93f" alt="Cloud Cost Governance System Banner" width="100%">
 
 ---
 
 # Application Workflow
 
-> **Placeholder:** Add the application workflow diagram here.
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/b34af952-cdc2-4c0b-87f9-da0bf301adfb" alt="Cloud Cost Governance System Banner" width="100%">
 
-Suggested image:
-
-```text
-docs/images/application-workflow.png
-```
 
 ---
 
@@ -110,25 +101,16 @@ cloud-cost-governance-system/
 
 # Dashboard
 
-> **Placeholder:** Add a screenshot of the application dashboard.
-
-Suggested image:
-
-```text
-docs/images/dashboard.png
-```
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/dbc72762-7382-4de3-b10e-a9c77b4c01e8" alt="Cloud Cost Governance System Banner" width="100%">
 
 ---
 
 # Sample Output
 
-> **Placeholder:** Add a screenshot showing optimization recommendations.
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/18e33c7f-3fa3-4910-a52a-7c07ab2dcaaf" alt="Cloud Cost Governance System Banner" width="100%">
 
-Suggested image:
-
-```text
-docs/images/sample-output.png
-```
 
 ---
 
