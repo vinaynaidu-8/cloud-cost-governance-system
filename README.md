@@ -1,80 +1,85 @@
 # Cloud Cost Governance System
 
-An intelligent cloud cost optimization system that analyzes AWS resource utilization and provides actionable recommendations to reduce unnecessary cloud expenditure. The application collects AWS resource information, evaluates utilization using predefined governance rules, and presents optimization recommendations through a web-based dashboard.
+## Overview
+
+Cloud Cost Governance System is a web-based application developed to analyze AWS resource utilization and provide rule-based recommendations for optimizing cloud costs. The system collects resource information from AWS services, evaluates utilization using predefined governance rules, and presents optimization insights through an interactive dashboard.
+
+The primary objective of this project is to help identify idle and underutilized cloud resources so that organizations can make informed decisions to reduce unnecessary cloud expenditure.
 
 ---
 
-## Overview
+## Problem Statement
 
-Cloud environments often contain underutilized or idle resources that continue to generate unnecessary costs. This project helps identify such resources by analyzing their utilization metrics and classifying them into actionable categories such as **Stop**, **Resize**, or **Keep Running**.
+Cloud resources that remain underutilized or idle continue to generate costs even when they are not effectively used. Manually identifying such resources becomes difficult as cloud environments grow.
 
-The system is designed with a modular architecture, making it easy to extend with additional cloud services, optimization rules, and automation features.
+This project provides a simple governance solution that monitors AWS resource utilization and recommends appropriate optimization actions based on predefined rules.
+
+---
+
+## Objectives
+
+* Analyze AWS cloud resource utilization.
+* Identify idle and underutilized EC2 instances.
+* Generate rule-based optimization recommendations.
+* Display utilization insights through a web dashboard.
+* Support better cloud cost management.
 
 ---
 
 ## Features
 
-- Analyze AWS EC2 resource utilization
-- Monitor cloud resource status
-- Rule-based resource optimization
-- Identify idle and underutilized instances
-- Estimate potential cost savings
-- Interactive web dashboard
-- Modular pipeline architecture
-- Easy deployment on AWS EC2
+* AWS EC2 resource monitoring
+* Rule-based resource classification
+* Resource utilization analysis
+* Cost optimization recommendations
+* Interactive Flask dashboard
+* Modular backend architecture
+* Easy deployment on AWS EC2
 
 ---
 
-## System Architecture
+# System Architecture
+
+> **Placeholder:** Insert the overall architecture diagram here.
+
+Example filename:
 
 ```
-                +---------------------+
-                |     AWS Services    |
-                | EC2 | Cost Explorer |
-                +----------+----------+
-                           |
-                           |
-                    Data Collection
-                           |
-                           |
-                +----------v----------+
-                |    Processing &     |
-                | Optimization Rules  |
-                +----------+----------+
-                           |
-                           |
-                  Recommendation Engine
-                           |
-                           |
-                +----------v----------+
-                |   Flask Dashboard   |
-                +----------+----------+
-                           |
-                           |
-                        End User
+docs/images/system-architecture.png
+```
+
+---
+
+# Application Workflow
+
+> **Placeholder:** Insert the workflow diagram here.
+
+Example filename:
+
+```
+docs/images/application-workflow.png
 ```
 
 ---
 
 ## Project Structure
 
-```
+```text
 cloud-cost-governance-system/
 │
-├── pipeline/                  # Core processing and optimization logic
-├── web/                       # Flask web application
-│   ├── app.py                 # Application entry point
+├── web/
+│   ├── app.py                 # Main Flask application
 │   ├── templates/
+│   │     └── index.html       # Dashboard UI
 │   └── static/
 │
-├── data/                      # Input and processed data
+├── pipeline/                  # Data processing and optimization logic
+├── data/                      # Sample/processed data (if applicable)
 ├── config.py                  # Configuration settings
 ├── aws_setup.py               # AWS service initialization
-├── run_system.py              # Pipeline execution script
-├── requirements.txt           # Project dependencies
+├── requirements.txt           # Python dependencies
 ├── README.md
-├── PROJECT_DOCUMENTATION.md
-└── SYSTEM_VERIFICATION.md
+└── .gitignore
 ```
 
 ---
@@ -83,90 +88,124 @@ cloud-cost-governance-system/
 
 ### Programming Language
 
-- Python
+* Python
 
-### Web Framework
+### Backend Framework
 
-- Flask
+* Flask
 
 ### Cloud Platform
 
-- Amazon Web Services (AWS)
+* Amazon Web Services (AWS)
 
 ### AWS Services
 
-- Amazon EC2
-- AWS Cost Explorer
-- Amazon CloudWatch
+* Amazon EC2
+* Amazon CloudWatch
+* AWS Cost Explorer
 
 ### Libraries
 
-- Boto3
-- Pandas
-- NumPy
+* Boto3
+* Pandas
+* NumPy
 
 ### Frontend
 
-- HTML
-- CSS
-- Bootstrap
-- JavaScript
+* HTML
+* CSS
+* Bootstrap
+* JavaScript
+
+### Development Tools
+
+* VS Code
+* Git
+* GitHub
 
 ---
 
-## Workflow
+## System Workflow
 
 1. Connect to AWS services.
-2. Collect resource utilization information.
-3. Process and validate the collected data.
-4. Apply governance rules to identify optimization opportunities.
+2. Retrieve resource utilization information.
+3. Process collected metrics.
+4. Apply governance rules.
 5. Classify resources based on utilization.
-6. Estimate potential savings.
-7. Display recommendations on the dashboard.
+6. Generate optimization recommendations.
+7. Display results through the dashboard.
 
 ---
 
-## Optimization Categories
+## Optimization Logic
 
-| Category | Action | Description |
-|----------|--------|-------------|
-| High Priority | Stop | Resource is idle and can be stopped to reduce cost. |
-| Medium Priority | Resize | Resource is underutilized and can be resized. |
-| Low Priority | Keep Running | Resource utilization is within the expected range. |
+| Resource Status    | Recommendation |
+| ------------------ | -------------- |
+| Idle               | Stop           |
+| Underutilized      | Resize         |
+| Optimally Utilized | Keep Running   |
+
+---
+
+# Dashboard
+
+> **Placeholder:** Insert dashboard screenshot here.
+
+Example filename:
+
+```
+docs/images/dashboard.png
+```
+
+---
+
+# Sample Output
+
+> **Placeholder:** Insert sample recommendation screenshot here.
+
+Example filename:
+
+```
+docs/images/sample-output.png
+```
 
 ---
 
 ## Installation
 
-### Clone the Repository
+Clone the repository.
 
 ```bash
 git clone https://github.com/vinaynaidu-8/cloud-cost-governance-system.git
+```
 
+Move into the project directory.
+
+```bash
 cd cloud-cost-governance-system
 ```
 
-### Create Virtual Environment
+Create a virtual environment.
 
 ```bash
 python3 -m venv venv
 ```
 
-### Activate Virtual Environment
+Activate the virtual environment.
 
-**Linux / macOS**
+Linux/macOS
 
 ```bash
 source venv/bin/activate
 ```
 
-**Windows**
+Windows
 
 ```bash
 venv\Scripts\activate
 ```
 
-### Install Dependencies
+Install project dependencies.
 
 ```bash
 pip install -r requirements.txt
@@ -176,63 +215,54 @@ pip install -r requirements.txt
 
 ## Running the Application
 
-Navigate to the web directory.
+Navigate to the application directory.
 
 ```bash
 cd web
 ```
 
-Start the Flask application.
+Start the Flask server.
 
 ```bash
 python app.py
 ```
 
-The application will start on the configured local server.
+Open your browser and access the application using the local address displayed in the terminal.
 
 ---
 
 ## AWS Configuration
 
-Before running the application, ensure that AWS credentials are configured with the required permissions.
-
-Required AWS services include:
-
-- Amazon EC2
-- Amazon CloudWatch
-- AWS Cost Explorer
-
-Configure credentials using:
+Before running the project, configure AWS credentials.
 
 ```bash
 aws configure
 ```
 
----
+The application requires access to:
 
-## Sample Analysis
-
-The system evaluates resource utilization and generates recommendations such as:
-
-| Resource | Status | Recommendation |
-|----------|--------|----------------|
-| EC2 Instance A | Idle | Stop |
-| EC2 Instance B | Underutilized | Resize |
-| EC2 Instance C | Optimally Utilized | Keep Running |
+* Amazon EC2
+* Amazon CloudWatch
+* AWS Cost Explorer
 
 ---
 
 ## Future Enhancements
 
-- Machine Learning based utilization prediction
-- Automatic remediation actions
-- Multi-cloud support
-- Email notifications
-- Scheduled optimization reports
-- Historical trend analysis
-- Resource tagging support
-- Cost forecasting
-- Automated governance policies
+* Automated optimization actions
+* Multi-cloud support
+* Historical trend analysis
+* Email notifications
+* Scheduled governance reports
+* Resource tagging support
+* Cost forecasting
+* Machine learning based recommendation engine
+
+---
+
+## Project Outcome
+
+The project successfully demonstrates how AWS resource utilization can be analyzed using rule-based governance to identify optimization opportunities. It provides a functional dashboard that helps visualize utilization metrics and supports cost optimization decisions.
 
 ---
 
@@ -240,9 +270,9 @@ The system evaluates resource utilization and generates recommendations such as:
 
 **Vinay Naidu**
 
-Master of Computer Applications (MCA)
+Master of Computer Applications
 
-Cloud Computing | Python | AWS | DevOps
+Cloud Computing | Python | AWS
 
 GitHub: https://github.com/vinaynaidu-8
 
@@ -250,4 +280,4 @@ GitHub: https://github.com/vinaynaidu-8
 
 ## License
 
-This project is intended for educational and research purposes.
+This project is developed for educational and academic purposes.
