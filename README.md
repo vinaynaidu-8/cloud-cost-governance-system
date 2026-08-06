@@ -3,6 +3,10 @@
 <p align="center">
   <img src="https://github.com/user-attachments/assets/713eec09-1764-47d9-833c-060499fd1a38" alt="Cloud Cost Governance System Banner" width="100%">
 
+<p align="center">
+  <strong>AWS • Flask • Python • Cloud Cost Optimization</strong>
+</p>
+
 
 A rule-based cloud cost optimization system that analyzes AWS resource utilization and provides actionable recommendations to help reduce unnecessary cloud costs. The application integrates with AWS services, evaluates resource usage, and presents optimization insights through a web-based dashboard.
 
@@ -10,36 +14,42 @@ A rule-based cloud cost optimization system that analyzes AWS resource utilizati
 
 ## Project Overview
 
-Cloud resources that remain idle or underutilized continue to incur costs. This project helps identify such resources by analyzing AWS utilization metrics and applying predefined governance rules to recommend appropriate optimization actions.
+Cloud Cost Governance System is a web-based application developed to help optimize AWS cloud costs by analyzing resource utilization and identifying optimization opportunities. The application integrates with Amazon CloudWatch and AWS Cost Explorer to collect utilization and cost metrics, applies predefined governance rules, and generates actionable recommendations.
 
-The application is built using Python and Flask, with AWS integration through Boto3, and provides an interactive dashboard for monitoring cloud resources and cost optimization opportunities.
-
----
+Built using Python, Flask, and Boto3, the system presents cloud usage insights through an interactive dashboard, enabling users to identify idle or underutilized resources and make informed cost optimization decisions.
 
 ## Key Features
 
-* Analyze AWS EC2 resource utilization
-* Retrieve AWS cost information using Cost Explorer
-* Monitor resource metrics using Amazon CloudWatch
-* Rule-based resource classification
-* Optimization recommendations (Stop, Resize, or Keep Running)
-* Interactive dashboard for visualization
-* Modular and easy-to-maintain architecture
+### AWS Monitoring
 
+- Monitor Amazon EC2 resource utilization.
+- Retrieve cloud cost data using AWS Cost Explorer.
+- Collect utilization metrics from Amazon CloudWatch.
+
+### Cost Optimization
+
+- Analyze resource utilization using predefined governance rules.
+- Identify idle and underutilized resources.
+- Generate optimization recommendations such as **Stop**, **Resize**, or **Keep Running**.
+
+### Dashboard & Reporting
+
+- Interactive web dashboard built with Flask.
+- Visual representation of utilization metrics and cost insights.
+- Simple and user-friendly interface for monitoring cloud resources.
 ---
 
 ## Technology Stack
 
-| Category             | Technologies                     |
-| -------------------- | -------------------------------- |
-| Programming Language | Python                           |
-| Backend              | Flask                            |
-| Cloud Platform       | Amazon Web Services (AWS)        |
-| AWS Services         | EC2, CloudWatch, Cost Explorer   |
-| SDK                  | Boto3                            |
-| Frontend             | HTML, CSS, Bootstrap, JavaScript |
-| Version Control      | Git, GitHub                      |
-
+| Category | Technologies |
+|----------|--------------|
+| **Programming Language** | Python |
+| **Backend Framework** | Flask |
+| **Cloud Platform** | Amazon Web Services (AWS) |
+| **AWS Services** | Amazon EC2, Amazon CloudWatch, AWS Cost Explorer |
+| **AWS SDK** | Boto3 |
+| **Frontend** | HTML, CSS, Bootstrap, JavaScript |
+| **Development Tools** | Git, GitHub, VS Code |
 ---
 
 # System Architecture
@@ -47,13 +57,29 @@ The application is built using Python and Flask, with AWS integration through Bo
 <p align="center">
   <img src="https://github.com/user-attachments/assets/0bc3f0fa-03b0-45c8-9f4c-7f0bc917b93f" alt="Cloud Cost Governance System Banner" width="100%">
 
+  ### Architecture Components
+
+| Component | Description |
+|-----------|-------------|
+| **Flask Application** | Serves as the backend and coordinates data processing and dashboard rendering. |
+| **Amazon EC2** | Provides information about compute resources. |
+| **Amazon CloudWatch** | Supplies utilization metrics used for resource evaluation. |
+| **AWS Cost Explorer** | Retrieves cloud cost and usage information. |
+| **Governance Rule Engine** | Applies predefined rules to classify resources and generate optimization recommendations. |
+| **Dashboard** | Displays utilization metrics, cloud cost insights, and optimization recommendations through a web interface. |
+
 ---
 
-# Application Workflow
+## How It Works
 
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/b34af952-cdc2-4c0b-87f9-da0bf301adfb" alt="Cloud Cost Governance System Banner" width="100%">
+The application follows the following execution flow:
 
+1. Establishes a connection with AWS services using Boto3.
+2. Retrieves EC2 resource information, CloudWatch utilization metrics, and Cost Explorer data.
+3. Processes the collected information using predefined governance rules.
+4. Classifies resources based on their utilization levels.
+5. Generates optimization recommendations such as **Stop**, **Resize**, or **Keep Running**.
+6. Displays the analyzed results through the Flask dashboard.
 
 ---
 
@@ -62,44 +88,41 @@ The application is built using Python and Flask, with AWS integration through Bo
 ```text
 cloud-cost-governance-system/
 │
-├── web/
-│   ├── app.py
-│   ├── templates/
-│   │   └── index.html
-│   └── static/
+├── docs/
+│   └── images/                # README assets and screenshots
 │
-├── aws_setup.py
-├── config.py
-├── requirements.txt
-├── README.md
-└── .gitignore
+├── web/
+│   ├── app.py                 # Main Flask application
+│   ├── templates/
+│   │   └── index.html         # Dashboard user interface
+│   └── static/                # Static assets (CSS, JS, Images)
+│
+├── aws_setup.py               # AWS authentication and service initialization
+├── config.py                  # Application configuration and constants
+├── requirements.txt           # Project dependencies
+├── .gitignore                 # Git ignore rules
+└── README.md                  # Project documentation
 ```
 
----
+### Directory Overview
 
-## How It Works
+| File / Folder | Description |
+|---------------|-------------|
+| **web/** | Contains the Flask application and user interface. |
+| **app.py** | Entry point of the application that handles AWS integration, business logic, and dashboard rendering. |
+| **templates/** | HTML templates used by the Flask application. |
+| **static/** | Static resources such as CSS, JavaScript, and images. |
+| **aws_setup.py** | Initializes AWS services and validates AWS connectivity. |
+| **config.py** | Stores configurable values and application settings. |
+| **requirements.txt** | Lists all Python packages required to run the project. |
+| **docs/images/** | Stores images used in the GitHub README. |
 
-1. Connects securely to AWS services.
-2. Retrieves resource utilization and cost information.
-3. Processes the collected metrics.
-4. Applies rule-based governance logic.
-5. Classifies resources based on utilization.
-6. Generates optimization recommendations.
-7. Displays the results through the web dashboard.
-
----
-
-## Optimization Logic
-
-| Resource Status    | Recommendation |
-| ------------------ | -------------- |
-| Idle               | Stop           |
-| Underutilized      | Resize         |
-| Optimally Utilized | Keep Running   |
 
 ---
 
 # Dashboard
+
+The dashboard provides a consolidated view of AWS resource utilization, cloud cost analysis, and rule-based optimization recommendations. It enables users to monitor cloud resources and quickly identify opportunities for cost optimization.
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/dbc72762-7382-4de3-b10e-a9c77b4c01e8" alt="Cloud Cost Governance System Banner" width="100%">
@@ -114,27 +137,24 @@ cloud-cost-governance-system/
 
 ---
 
-## Installation
+## Getting Started
 
-Clone the repository.
+Follow the steps below to set up and run the application on your local machine.
+
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/vinaynaidu-8/cloud-cost-governance-system.git
-```
-
-Navigate to the project directory.
-
-```bash
 cd cloud-cost-governance-system
 ```
 
-Create a virtual environment.
+### 2. Create a Virtual Environment
 
 ```bash
 python3 -m venv venv
 ```
 
-Activate the virtual environment.
+### 3. Activate the Virtual Environment
 
 **Linux / macOS**
 
@@ -148,30 +168,36 @@ source venv/bin/activate
 venv\Scripts\activate
 ```
 
-Install the required dependencies.
+### 4. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
----
+### 5. Configure AWS Credentials
 
-## Running the Application
+Configure AWS credentials before running the application.
 
-Navigate to the application directory.
+```bash
+aws configure
+```
+
+The application requires access to:
+
+- Amazon EC2
+- Amazon CloudWatch
+- AWS Cost Explorer
+
+> **Note:** If the application is deployed on an Amazon EC2 instance with an IAM Role attached, `aws configure` is not required.
+
+### 6. Run the Application
 
 ```bash
 cd web
-```
-
-Start the Flask application.
-
-```bash
 python app.py
 ```
 
-Open the application using the local URL displayed in the terminal.
-
+Once the server starts successfully, open the application in your browser using the local URL displayed in the terminal.
 ---
 
 ## AWS Configuration
@@ -190,21 +216,60 @@ The application requires access to the following AWS services:
 
 ---
 
+## Current Scope
+
+The current implementation focuses on AWS EC2 resource monitoring and rule-based cloud cost governance. The application integrates with Amazon CloudWatch and AWS Cost Explorer to analyze resource utilization and cost metrics, applies predefined governance rules, and presents optimization recommendations through a Flask-based dashboard.
+
+---
+
 ## Future Enhancements
 
-* Automated optimization actions
-* Historical utilization reports
-* Email notifications
-* Cost forecasting
-* Multi-cloud support
-* Resource tagging support
-* Machine learning based recommendation engine
+The current implementation serves as a foundation for extending cloud governance capabilities. Future improvements may include:
+
+- Automated optimization actions for supported AWS resources.
+- Historical utilization and cost trend analysis.
+- Cost forecasting using historical usage patterns.
+- Email notifications for optimization recommendations.
+- Resource tagging and governance policy support.
+- Multi-cloud support for Azure and Google Cloud Platform.
+- Machine learning-based recommendation engine for intelligent cost optimization.
+- Scheduled cloud governance reports and analytics.
 
 ---
 
 ## Project Outcome
 
-This project demonstrates a practical approach to cloud cost governance by analyzing AWS resource utilization and generating rule-based optimization recommendations. It provides a simple and effective dashboard that helps users identify opportunities to improve cloud resource efficiency and reduce unnecessary costs.
+This project demonstrates the practical application of cloud computing concepts by integrating AWS services with a Python-based web application to support cloud cost governance. It provides a centralized dashboard for monitoring resource utilization, analyzing cloud costs, and generating rule-based optimization recommendations that assist in improving cloud resource efficiency.
+
+---
+
+## Learning Outcomes
+
+Through the development of this project, the following concepts were explored and implemented:
+
+- AWS service integration using Boto3
+- Cloud resource monitoring with Amazon CloudWatch
+- Cloud cost analysis using AWS Cost Explorer
+- Rule-based decision making for resource optimization
+- Flask web application development
+- Dashboard design and data visualization
+- Git and GitHub for version control
+
+---
+
+## Repository Information
+
+**Repository Name**
+
+`cloud-cost-governance-system`
+
+**Primary Technologies**
+
+Python • Flask • AWS • Boto3 • HTML • CSS • Bootstrap
+
+**Project Type**
+
+Academic Cloud Computing Project
 
 ---
 
@@ -214,12 +279,21 @@ This project demonstrates a practical approach to cloud cost governance by analy
 
 Master of Computer Applications (MCA)
 
-Interests: Cloud Computing, Python, AWS, DevOps
+Cloud Computing | Python | AWS | Flask | DevOps
 
 GitHub: https://github.com/vinaynaidu-8
+
+LinkedIn: *(Add your LinkedIn profile URL here if you want recruiters to connect with you.)*
+
+---
+
+## Acknowledgements
+
+This project was developed as part of an academic cloud computing initiative to explore AWS-based resource monitoring, cloud cost governance, and web application development. It reflects practical implementation of cloud governance concepts using publicly available AWS services and Python-based technologies.
 
 ---
 
 ## License
 
-This project is intended for educational and learning purposes.
+This project is intended for educational and learning purposes. The source code may be referenced for academic study and personal learning.
+
